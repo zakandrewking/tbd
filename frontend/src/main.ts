@@ -1,4 +1,7 @@
 import * as THREE from "three";
+import { FirstPersonControls } from "three/addons/controls/FirstPersonControls.js";
+
+const clock = new THREE.Clock();
 
 function resizeRendererToDisplaySize(renderer: THREE.Renderer) {
   const canvas = renderer.domElement;
@@ -20,12 +23,56 @@ const renderer = new THREE.WebGLRenderer({
 
 const fov = 75;
 const aspect = 2;
-const near = 0.1;
-const far = 5;
+const near = 0.1; // Keep this small for close objects
+const far = 1000; // Increase this significantly (was 5)
 const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 camera.position.z = 4;
 
 const scene = new THREE.Scene();
+scene.background = new THREE.Color("white");
+
+const controls = new FirstPersonControls(camera, renderer.domElement);
+console.log(controls);
+controls.lookSpeed = 0.1; // Reduced from 0.8 for smoother looking
+controls.movementSpeed = 5;
+controls.autoForward = false; // Add this to prevent continuous movement
+controls.activeLook = true; // Ensures looking is enabled
+controls.mouseDragOn = false; // Prevents continuous movement after mouse drag
+controls.constrainVertical = true; // Optional: prevents over-rotation up/down
+controls.verticalMin = 1.0;
+controls.verticalMax = 2.0;
+scene.add(controls.object);
+
+// Add these at the top level of your code
+let moveUp = false;
+let moveDown = false;
+const moveSpeed = 0.1; // Adjust this value to control movement speed
+
+// Add event listeners for keydown and keyup
+window.addEventListener("keydown", (event) => {
+  switch (event.code) {
+    case "Space":
+      moveUp = true;
+      event.preventDefault(); // Prevent page scrolling
+      break;
+    case "ShiftLeft":
+    case "ShiftRight":
+      moveDown = true;
+      break;
+  }
+});
+
+window.addEventListener("keyup", (event) => {
+  switch (event.code) {
+    case "Space":
+      moveUp = false;
+      break;
+    case "ShiftLeft":
+    case "ShiftRight":
+      moveDown = false;
+      break;
+  }
+});
 
 const boxWidth = 1;
 const boxHeight = 1;
@@ -70,6 +117,16 @@ function render(time: number) {
     camera.updateProjectionMatrix();
   }
 
+  // Handle vertical movement
+  if (moveUp) {
+    camera.position.y += moveSpeed;
+  }
+  if (moveDown) {
+    camera.position.y -= moveSpeed;
+  }
+
+  controls.update(clock.getDelta());
+
   cubes.forEach((cube, ndx) => {
     const speed = 1 + ndx * 0.1;
     const rot = time * speed;
@@ -78,6 +135,8 @@ function render(time: number) {
   });
 
   renderer.render(scene, camera);
+
+  // controls.
 
   requestAnimationFrame(render);
 }
