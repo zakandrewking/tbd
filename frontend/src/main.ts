@@ -21,12 +21,12 @@ const renderer = new THREE.WebGLRenderer({
   canvas: canvas as HTMLCanvasElement,
 });
 
-const fov = 75;
-const aspect = 2;
-const near = 0.1; // Keep this small for close objects
-const far = 1000; // Increase this significantly (was 5)
+const fov = 60;
+const aspect = 1920 / 1080;
+const near = 1.0;
+const far = 1000.0;
 const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-camera.position.z = 4;
+camera.position.set(10, 2, 2);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color("white");
@@ -42,6 +42,15 @@ controls.constrainVertical = true; // Optional: prevents over-rotation up/down
 controls.verticalMin = 1.0;
 controls.verticalMax = 2.0;
 scene.add(controls.object);
+
+const plane = new THREE.Mesh(
+  new THREE.PlaneGeometry(100, 100, 10, 10),
+  new THREE.MeshStandardMaterial({ color: "lightgreen" })
+);
+plane.castShadow = false;
+plane.receiveShadow = true;
+plane.rotation.x = -Math.PI / 2;
+scene.add(plane);
 
 // Add these at the top level of your code
 let moveUp = false;
@@ -82,14 +91,16 @@ const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
 function makeInstance(
   geometry: THREE.BufferGeometry,
   color: THREE.ColorRepresentation,
-  x: number
+  z: number
 ) {
   const material = new THREE.MeshPhongMaterial({ color });
 
   const cube = new THREE.Mesh(geometry, material);
   scene.add(cube);
 
-  cube.position.x = x;
+  cube.position.y = 2;
+  cube.position.z = z;
+  cube.position.x = 10;
 
   return cube;
 }
